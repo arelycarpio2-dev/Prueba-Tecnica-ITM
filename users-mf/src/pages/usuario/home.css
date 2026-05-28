@@ -1,0 +1,48 @@
+.home-container {
+  padding: 20px;
+}
+
+.form-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form-container input {
+  padding: 8px;
+}
+
+.btn-primary,
+.btn-edit,
+.btn-delete {
+  cursor: pointer;
+  padding: 8px 12px;
+  border: none;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-edit {
+  background: orange;
+  color: white;
+  margin-right: 5px;
+}
+
+.btn-delete {
+  background: crimson;
+  color: white;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
