@@ -2,6 +2,27 @@
   padding: 20px;
 }
 
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.home-header center {
+  flex: 1;
+}
+
+.btn-logout {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
 .form-container {
   display: flex;
   gap: 10px;

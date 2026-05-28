@@ -1,8 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./home.css";
 import { FaTrash, FaPen, FaPlus } from "react-icons/fa6";
+import ConfigRoutes from "../../routes/ConfigRoutes";
 
 function Home() {
+  const navigate = useNavigate();
+
+  const cerrarSesion = () => {
+    localStorage.removeItem("token");
+    navigate(ConfigRoutes.LOGIN);
+  };
   const [usuarios, setUsuarios] = useState([
     {
       id: 1,
@@ -91,9 +99,14 @@ function Home() {
 
   return (
     <div className="home-container">
-      <center>
-        <h1>Gestión de Usuarios</h1>
-      </center>
+      <div className="home-header">
+        <center>
+          <h1>Gestión de Usuarios</h1>
+        </center>
+        <button className="btn-logout" onClick={cerrarSesion}>
+          Cerrar sesión
+        </button>
+      </div>
 
       {/* FORMULARIO */}
       <div className="form-container">
