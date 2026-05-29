@@ -7,30 +7,22 @@ import ConfigRoutes from "../../routes/ConfigRoutes";
 function Home() {
   const navigate = useNavigate();
 
+  const [usuarios, setUsuarios] = useState([{}]);
+
+  const [formulario, setFormulario] = useState({ });
+
+  // Controla si el modal está abierto o cerrado
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+  const [editando, setEditando] = useState(null);
+
+  // Cerrar sesión: limpia el token y redirige al login
   const cerrarSesion = () => {
     localStorage.removeItem("token");
     navigate(ConfigRoutes.LOGIN);
   };
-  const [usuarios, setUsuarios] = useState([
-    {
-      id: 1,
-      usuario: "admin",
-      nombre: "Ana López",
-      correo: "ana@test.com",
-      estado: "Activo",
-    },
-  ]);
 
-  const [formulario, setFormulario] = useState({
-    usuario: "",
-    nombre: "",
-    correo: "",
-    estado: "Activo",
-  });
-
-  const [editando, setEditando] = useState(null);
-
-  // Capturar cambios
+  // Capturar cambios en los inputs del formulario
   const handleChange = (e) => {
     setFormulario({
       ...formulario,
@@ -38,105 +30,71 @@ function Home() {
     });
   };
 
-  // Crear o actualizar usuario
+  // Abrir modal para crear un nuevo usuario
+  const abrirModalCrear = () => {
+    setFormulario({ usuario: "", nombre: "", correo: "", estado: "Activo" });
+    setEditando(null);
+    setModalAbierto(true);
+  };
+
+  // Abrir modal para editar un usuario existente
+  const abrirModalEditar = (usuario) => {
+    setFormulario(usuario);
+    setEditando(usuario.id);
+    setModalAbierto(true);
+  };
+
+  // Cerrar modal y limpiar estado
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setEditando(null);
+    setFormulario({ usuario: "", nombre: "", correo: "", estado: "Activo" });
+  };
+
+  // Guardar: crea o actualiza según si hay un id en edición
   const guardarUsuario = () => {
-    if (
-      !formulario.usuario ||
-      !formulario.nombre ||
-      !formulario.correo
-    ) {
+    if (!formulario.usuario || !formulario.nombre || !formulario.correo) {
       alert("Completa todos los campos");
       return;
     }
 
-    // EDITAR
     if (editando) {
+      // EDITAR: reemplaza el usuario con el id correspondiente
       const actualizados = usuarios.map((u) =>
-        u.id === editando
-          ? { ...u, ...formulario }
-          : u
+        u.id === editando ? { ...u, ...formulario } : u
       );
-
       setUsuarios(actualizados);
-      setEditando(null);
     } else {
-      // CREAR
-      const nuevoUsuario = {
-        id: Date.now(),
-        ...formulario,
-      };
-
+      // CREAR: agrega un nuevo usuario con id único
+      const nuevoUsuario = { id: Date.now(), ...formulario };
       setUsuarios([...usuarios, nuevoUsuario]);
     }
 
-    // Limpiar formulario
-    setFormulario({
-      usuario: "",
-      nombre: "",
-      correo: "",
-      estado: "Activo",
-    });
+    cerrarModal();
   };
 
-  // Editar
-  const editarUsuario = (usuario) => {
-    setFormulario(usuario);
-    setEditando(usuario.id);
-  };
-
-  // Eliminar
+  // Eliminar usuario con confirmación
   const eliminarUsuario = (id) => {
-    const confirmar = window.confirm(
-      "¿Seguro que deseas eliminar este usuario?"
-    );
-
+    const confirmar = window.confirm("¿Seguro que deseas eliminar este usuario?");
     if (!confirmar) return;
-
-    const filtrados = usuarios.filter((u) => u.id !== id);
-
-    setUsuarios(filtrados);
+    setUsuarios(usuarios.filter((u) => u.id !== id));
   };
 
   return (
     <div className="home-container">
+
+      {/* ENCABEZADO */}
       <div className="home-header">
-        <center>
-          <h1>Gestión de Usuarios</h1>
-        </center>
+        <h1>Gestión de Usuarios</h1>
         <button className="btn-logout" onClick={cerrarSesion}>
           Cerrar sesión
         </button>
       </div>
 
-      {/* FORMULARIO */}
-      <div className="form-container">
-        <input
-          type="text"
-          name="usuario"
-          placeholder="Usuario"
-          value={formulario.usuario}
-          onChange={handleChange}
-        />
-
-        <input
-          type="text"
-          name="nombre"
-          placeholder="Nombre"
-          value={formulario.nombre}
-          onChange={handleChange}
-        />
-
-        <input
-          type="email"
-          name="correo"
-          placeholder="Correo"
-          value={formulario.correo}
-          onChange={handleChange}
-        />
-
-        <button className="btn-primary" onClick={guardarUsuario}>
-          <FaPlus />
-          {editando ? " Actualizar" : " Crear usuario"}
+      {/* BOTÓN CREAR */}
+      <div className="home-actions">
+        <button className="btn-primary" onClick={abrirModalCrear}>
+          <FaPlus /> Crear usuario
         </button>
       </div>
 
@@ -151,7 +109,6 @@ function Home() {
             <th>Acciones</th>
           </tr>
         </thead>
-
         <tbody>
           {usuarios.map((u) => (
             <tr key={u.id}>
@@ -159,15 +116,13 @@ function Home() {
               <td>{u.nombre}</td>
               <td>{u.correo}</td>
               <td>{u.estado}</td>
-
               <td>
                 <button
                   className="btn-edit"
-                  onClick={() => editarUsuario(u)}
+                  onClick={() => abrirModalEditar(u)}
                 >
                   <FaPen />
                 </button>
-
                 <button
                   className="btn-delete"
                   onClick={() => eliminarUsuario(u.id)}
@@ -179,6 +134,64 @@ function Home() {
           ))}
         </tbody>
       </table>
+
+      {/* MODAL FORMULARIO */}
+      {modalAbierto && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>{editando ? "Editar usuario" : "Crear usuario"}</h2>
+
+            <div className="modal-form">
+              <label>Usuario</label>
+              <input
+                type="text"
+                name="usuario"
+                placeholder="Usuario"
+                value={formulario.usuario}
+                onChange={handleChange}
+              />
+
+              <label>Nombre</label>
+              <input
+                type="text"
+                name="nombre"
+                placeholder="Nombre completo"
+                value={formulario.nombre}
+                onChange={handleChange}
+              />
+
+              <label>Correo</label>
+              <input
+                type="email"
+                name="correo"
+                placeholder="correo@ejemplo.com"
+                value={formulario.correo}
+                onChange={handleChange}
+              />
+
+              <label>Estado</label>
+              <select
+                name="estado"
+                value={formulario.estado}
+                onChange={handleChange}
+              >
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={cerrarModal}>
+                Cancelar
+              </button>
+              <button className="btn-primary" onClick={guardarUsuario}>
+                {editando ? "Actualizar" : "Guardar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

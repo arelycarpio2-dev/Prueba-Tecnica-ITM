@@ -14,33 +14,40 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    // Aquí va la URL de tu Keycloak (ajústala a tu entorno)
-    const KEYCLOAK_URL =
-      "/auth/realms/master/protocol/openid-connect/token";
+    // Se guarda la URL del Login de nuestro KEYCLOACK
+    const LOGIN_URL = "/auth/realms/master/protocol/openid-connect/token";
 
+    // Se guardan los parametros para la autenticación del login
     const params = new URLSearchParams();
     params.append("client_id", "admin-cli");  
-    params.append("username", username);
+    params.append("username", username.trim());
     params.append("password", password);
     params.append("grant_type", "password");
 
+    /*
+     * Request en español significa peticion 
+     * ¿Qué es una peticion?
+     * Es un mensaje que se le envia al servidor
+     * para solicitar datos
+     */
     try {
-      const response = await fetch(KEYCLOAK_URL, {
+      const request = await fetch(LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded"},
         body: params,
       });
 
-      if (!response.ok) {
+      // Aqui se valida la peticion
+      if (!request.ok) {
         setError("Credenciales incorrectas");
         return;
       }
+      
+      // Esto es lo que nos devuelve el servidor 
+      const response = await request.json();
 
-      const data = await response.json();
-      console.log(data);
-
-      // Guardamos el token en localStorage
-      localStorage.setItem("token", data.access_token);
+      // Por medio de la respuesta guardamos el token en localStorage
+      localStorage.setItem("token", response.access_token);
 
       // Redirige al Home
       navigate(ConfigRoutes.HOME);
