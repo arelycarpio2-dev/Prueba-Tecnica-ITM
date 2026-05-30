@@ -118,3 +118,13 @@
   border: 1px solid #ccc;
   padding: 10px;
 }
+
+.lista-mensaje {
+  color: #6b7280;
+  margin: 16px 0;
+}
+
+.lista-error {
+  color: #dc2626;
+  margin: 16px 0;
+}

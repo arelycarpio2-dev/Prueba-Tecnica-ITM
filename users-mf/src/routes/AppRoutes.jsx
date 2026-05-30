@@ -5,17 +5,21 @@ import ProtectedRoute from "./ProtectedRoute.jsx";
 import PublicRoute from "./PublicRoute.jsx";
 import ConfigRoutes from "./ConfigRoutes.jsx";
 
-function AppRoutes() {
+// Recibe las credenciales del admin y el callback para guardarlas desde Login
+function AppRoutes({ credenciales, onLogin }) {
   return (
     <Routes>
       {/* Rutas públicas: solo accesibles sin sesión activa */}
       <Route element={<PublicRoute />}>
-        <Route path={ConfigRoutes.LOGIN} element={<Login />} />
+        <Route path={ConfigRoutes.LOGIN} element={<Login onLogin={onLogin} />} />
       </Route>
 
       {/* Rutas privadas: solo accesibles con sesión activa */}
       <Route element={<ProtectedRoute />}>
-        <Route path={ConfigRoutes.HOME} element={<Home />} />
+        <Route
+          path={ConfigRoutes.HOME}
+          element={<Home credenciales={credenciales} />}
+        />
       </Route>
     </Routes>
   );

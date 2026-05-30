@@ -1,20 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./home.css";
-import { FaTrash, FaPen, FaPlus } from "react-icons/fa6";
+import { FaPlus } from "react-icons/fa6";
 import ConfigRoutes from "../../routes/ConfigRoutes";
+import UsuarioTabla from "./components/UsuarioTabla";
+import UsuarioFormModal from "./components/UsuarioFormModal";
+import { obtenerUsuarios } from "../../services/usuarioService.jsx";
+import { crearUsuario } from "../../services/crearUsuarioService.jsx";
 
-function Home() {
+// Estado inicial vacío del formulario
+const FORMULARIO_VACIO = {
+  usuario: "",
+  nombre: "",
+  apellido: "",
+  correo: "",
+  contrasena: "",
+  estado: "Activo",
+};
+
+// Home recibe las credenciales del admin autenticado como props
+function Home({ credenciales }) {
   const navigate = useNavigate();
 
-  const [usuarios, setUsuarios] = useState([{}]);
+  const [usuarios, setUsuarios] = useState([]);
 
-  const [formulario, setFormulario] = useState({ });
+  // Estados para manejar la carga y errores de la lista
+  const [cargando, setCargando] = useState(true);
+  const [errorLista, setErrorLista] = useState("");
 
-  // Controla si el modal está abierto o cerrado
+  const [formulario, setFormulario] = useState(FORMULARIO_VACIO);
+
+  // Controla si el modal está visible
   const [modalAbierto, setModalAbierto] = useState(false);
 
+  // Guarda el id del usuario que se está editando (null = modo crear)
   const [editando, setEditando] = useState(null);
+
+  // Al montar el componente, carga la lista de usuarios desde Keycloak
+  useEffect(() => {
+    cargarUsuarios();
+  }, []);
+
+  // Llama al servicio y actualiza el estado con la lista de usuarios
+  const cargarUsuarios = async () => {
+    setCargando(true);
+    setErrorLista("");
+    try {
+      const lista = await obtenerUsuarios();
+      setUsuarios(lista);
+    } catch (error) {
+      console.error(error);
+      setErrorLista("No se pudo cargar la lista de usuarios");
+    } finally {
+      setCargando(false);
+    }
+  };
 
   // Cerrar sesión: limpia el token y redirige al login
   const cerrarSesion = () => {
@@ -24,56 +64,58 @@ function Home() {
 
   // Capturar cambios en los inputs del formulario
   const handleChange = (e) => {
-    setFormulario({
-      ...formulario,
-      [e.target.name]: e.target.value,
-    });
+    setFormulario({ ...formulario, [e.target.name]: e.target.value });
   };
 
-  // Abrir modal para crear un nuevo usuario
+  // Abrir modal en modo crear
   const abrirModalCrear = () => {
-    setFormulario({ usuario: "", nombre: "", correo: "", estado: "Activo" });
+    setFormulario(FORMULARIO_VACIO);
     setEditando(null);
     setModalAbierto(true);
   };
 
-  // Abrir modal para editar un usuario existente
+  // Abrir modal en modo editar con los datos del usuario seleccionado
   const abrirModalEditar = (usuario) => {
     setFormulario(usuario);
     setEditando(usuario.id);
     setModalAbierto(true);
   };
 
-  // Cerrar modal y limpiar estado
+  // Cerrar modal y resetear estado del formulario
   const cerrarModal = () => {
     setModalAbierto(false);
     setEditando(null);
-    setFormulario({ usuario: "", nombre: "", correo: "", estado: "Activo" });
+    setFormulario(FORMULARIO_VACIO);
   };
 
-  // Guardar: crea o actualiza según si hay un id en edición
-  const guardarUsuario = () => {
+  // Guardar: crea un usuario nuevo o actualiza el existente
+  const guardarUsuario = async () => {
     if (!formulario.usuario || !formulario.nombre || !formulario.correo) {
       alert("Completa todos los campos");
       return;
     }
 
     if (editando) {
-      // EDITAR: reemplaza el usuario con el id correspondiente
+      // Actualizar: reemplaza el usuario con el id en edición
       const actualizados = usuarios.map((u) =>
         u.id === editando ? { ...u, ...formulario } : u
       );
       setUsuarios(actualizados);
+      cerrarModal();
     } else {
-      // CREAR: agrega un nuevo usuario con id único
-      const nuevoUsuario = { id: Date.now(), ...formulario };
-      setUsuarios([...usuarios, nuevoUsuario]);
+      // Crear: llama al servicio y recarga la lista desde Keycloak
+      try {
+        await crearUsuario(formulario, credenciales.usuario, credenciales.contrasena);
+        await cargarUsuarios();
+        cerrarModal();
+      } catch (error) {
+        console.error(error);
+        alert("Error al crear el usuario");
+      }
     }
-
-    cerrarModal();
   };
 
-  // Eliminar usuario con confirmación
+  // Eliminar usuario tras confirmación
   const eliminarUsuario = (id) => {
     const confirmar = window.confirm("¿Seguro que deseas eliminar este usuario?");
     if (!confirmar) return;
@@ -83,7 +125,7 @@ function Home() {
   return (
     <div className="home-container">
 
-      {/* ENCABEZADO */}
+      {/* ENCABEZADO con título y botón de cerrar sesión */}
       <div className="home-header">
         <h1>Gestión de Usuarios</h1>
         <button className="btn-logout" onClick={cerrarSesion}>
@@ -91,105 +133,35 @@ function Home() {
         </button>
       </div>
 
-      {/* BOTÓN CREAR */}
+      {/* ACCIÓN PRINCIPAL: abrir modal para crear usuario */}
       <div className="home-actions">
         <button className="btn-primary" onClick={abrirModalCrear}>
           <FaPlus /> Crear usuario
         </button>
       </div>
 
-      {/* TABLA */}
-      <table className="user-table">
-        <thead>
-          <tr>
-            <th>Usuario</th>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((u) => (
-            <tr key={u.id}>
-              <td>{u.usuario}</td>
-              <td>{u.nombre}</td>
-              <td>{u.correo}</td>
-              <td>{u.estado}</td>
-              <td>
-                <button
-                  className="btn-edit"
-                  onClick={() => abrirModalEditar(u)}
-                >
-                  <FaPen />
-                </button>
-                <button
-                  className="btn-delete"
-                  onClick={() => eliminarUsuario(u.id)}
-                >
-                  <FaTrash />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Estados de carga y error */}
+      {cargando && <p className="lista-mensaje">Cargando usuarios...</p>}
+      {errorLista && <p className="lista-error">{errorLista}</p>}
 
-      {/* MODAL FORMULARIO */}
+      {/* TABLA de usuarios con acciones por fila */}
+      {!cargando && !errorLista && (
+        <UsuarioTabla
+          usuarios={usuarios}
+          onEditar={abrirModalEditar}
+          onEliminar={eliminarUsuario}
+        />
+      )}
+
+      {/* MODAL de formulario: visible solo cuando modalAbierto es true */}
       {modalAbierto && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>{editando ? "Editar usuario" : "Crear usuario"}</h2>
-
-            <div className="modal-form">
-              <label>Usuario</label>
-              <input
-                type="text"
-                name="usuario"
-                placeholder="Usuario"
-                value={formulario.usuario}
-                onChange={handleChange}
-              />
-
-              <label>Nombre</label>
-              <input
-                type="text"
-                name="nombre"
-                placeholder="Nombre completo"
-                value={formulario.nombre}
-                onChange={handleChange}
-              />
-
-              <label>Correo</label>
-              <input
-                type="email"
-                name="correo"
-                placeholder="correo@ejemplo.com"
-                value={formulario.correo}
-                onChange={handleChange}
-              />
-
-              <label>Estado</label>
-              <select
-                name="estado"
-                value={formulario.estado}
-                onChange={handleChange}
-              >
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
-            </div>
-
-            <div className="modal-actions">
-              <button className="btn-secondary" onClick={cerrarModal}>
-                Cancelar
-              </button>
-              <button className="btn-primary" onClick={guardarUsuario}>
-                {editando ? "Actualizar" : "Guardar"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <UsuarioFormModal
+          formulario={formulario}
+          editando={editando}
+          onChange={handleChange}
+          onGuardar={guardarUsuario}
+          onCerrar={cerrarModal}
+        />
       )}
 
     </div>
