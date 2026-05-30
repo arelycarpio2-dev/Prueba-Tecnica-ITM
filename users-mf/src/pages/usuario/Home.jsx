@@ -7,6 +7,7 @@ import UsuarioTabla from "./components/UsuarioTabla";
 import UsuarioFormModal from "./components/UsuarioFormModal";
 import { obtenerUsuarios } from "../../services/usuarioService.jsx";
 import { crearUsuario } from "../../services/crearUsuarioService.jsx";
+import { actualizarUsuario } from "../../services/actualizarUsuarioService.jsx";
 
 // Estado inicial vacío del formulario
 const FORMULARIO_VACIO = {
@@ -95,23 +96,21 @@ function Home({ credenciales }) {
       return;
     }
 
-    if (editando) {
-      // Actualizar: reemplaza el usuario con el id en edición
-      const actualizados = usuarios.map((u) =>
-        u.id === editando ? { ...u, ...formulario } : u
-      );
-      setUsuarios(actualizados);
-      cerrarModal();
-    } else {
-      // Crear: llama al servicio y recarga la lista desde Keycloak
-      try {
+    try {
+      if (editando) {
+        // Actualizar: llama al servicio y recarga la lista desde Keycloak
+        await actualizarUsuario(formulario, credenciales.usuario, credenciales.contrasena);
+        await cargarUsuarios();
+        cerrarModal();
+      } else {
+        // Crear: llama al servicio y recarga la lista desde Keycloak
         await crearUsuario(formulario, credenciales.usuario, credenciales.contrasena);
         await cargarUsuarios();
         cerrarModal();
-      } catch (error) {
-        console.error(error);
-        alert("Error al crear el usuario");
       }
+    } catch (error) {
+      console.error(error);
+      alert(editando ? "Error al actualizar el usuario" : "Error al crear el usuario");
     }
   };
 
