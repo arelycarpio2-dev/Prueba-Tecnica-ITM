@@ -8,6 +8,7 @@ import UsuarioFormModal from "./components/UsuarioFormModal";
 import { obtenerUsuarios } from "../../services/usuarioService.jsx";
 import { crearUsuario } from "../../services/crearUsuarioService.jsx";
 import { actualizarUsuario } from "../../services/actualizarUsuarioService.jsx";
+import { eliminarUsuario as eliminarUsuarioService } from "../../services/eliminarUsuarioService.jsx";
 
 // Estado inicial vacío del formulario
 const FORMULARIO_VACIO = {
@@ -19,8 +20,8 @@ const FORMULARIO_VACIO = {
   estado: "Activo",
 };
 
-// Home recibe las credenciales del admin autenticado como props
-function Home({ credenciales }) {
+// Home ya no necesita recibir credenciales como props
+function Home() {
   const navigate = useNavigate();
 
   const [usuarios, setUsuarios] = useState([]);
@@ -37,6 +38,15 @@ function Home({ credenciales }) {
   // Guarda el id del usuario que se está editando (null = modo crear)
   const [editando, setEditando] = useState(null);
 
+  // Helper para manejar sesión expirada
+  const manejarSesionExpirada = () => {
+    alert("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("token_expires_at");
+    navigate(ConfigRoutes.LOGIN);
+  };
+
   // Al montar el componente, carga la lista de usuarios desde Keycloak
   useEffect(() => {
     cargarUsuarios();
@@ -51,15 +61,21 @@ function Home({ credenciales }) {
       setUsuarios(lista);
     } catch (error) {
       console.error(error);
+      if (error.message === "Sesión expirada") {
+        manejarSesionExpirada();
+        return;
+      }
       setErrorLista("No se pudo cargar la lista de usuarios");
     } finally {
       setCargando(false);
     }
   };
 
-  // Cerrar sesión: limpia el token y redirige al login
+  // Cerrar sesión: limpia los tokens y redirige al login
   const cerrarSesion = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("token_expires_at");
     navigate(ConfigRoutes.LOGIN);
   };
 
@@ -99,26 +115,42 @@ function Home({ credenciales }) {
     try {
       if (editando) {
         // Actualizar: llama al servicio y recarga la lista desde Keycloak
-        await actualizarUsuario(formulario, credenciales.usuario, credenciales.contrasena);
+        await actualizarUsuario(formulario);
         await cargarUsuarios();
         cerrarModal();
       } else {
         // Crear: llama al servicio y recarga la lista desde Keycloak
-        await crearUsuario(formulario, credenciales.usuario, credenciales.contrasena);
+        await crearUsuario(formulario);
         await cargarUsuarios();
         cerrarModal();
       }
     } catch (error) {
       console.error(error);
+      if (error.message === "Sesión expirada") {
+        manejarSesionExpirada();
+        return;
+      }
       alert(editando ? "Error al actualizar el usuario" : "Error al crear el usuario");
     }
   };
 
   // Eliminar usuario tras confirmación
-  const eliminarUsuario = (id) => {
+  const eliminarUsuario = async (id) => {
     const confirmar = window.confirm("¿Seguro que deseas eliminar este usuario?");
     if (!confirmar) return;
-    setUsuarios(usuarios.filter((u) => u.id !== id));
+
+    try {
+      // Eliminar: llama al servicio y recarga la lista desde Keycloak
+      await eliminarUsuarioService(id);
+      await cargarUsuarios();
+    } catch (error) {
+      console.error(error);
+      if (error.message === "Sesión expirada") {
+        manejarSesionExpirada();
+        return;
+      }
+      alert("Error al eliminar el usuario");
+    }
   };
 
   return (

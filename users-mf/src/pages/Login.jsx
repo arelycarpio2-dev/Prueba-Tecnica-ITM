@@ -4,8 +4,7 @@ import "./login.css";
 import ConfigRoutes from "../routes/ConfigRoutes";
 import { login } from "../services/authService.jsx";
 
-// Recibe onLogin para notificar al padre las credenciales al autenticarse
-function Login({ onLogin }) {
+function Login() {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
@@ -18,8 +17,7 @@ function Login({ onLogin }) {
 
     try {
       await login(username, password);
-      // Pasar las credenciales al componente padre (App)
-      onLogin({ usuario: username, contrasena: password });
+      // El token ya está guardado en localStorage por el servicio login
       navigate(ConfigRoutes.HOME);
     } catch (err) {
       console.log(err);

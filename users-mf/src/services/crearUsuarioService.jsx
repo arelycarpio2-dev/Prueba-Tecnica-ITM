@@ -1,16 +1,11 @@
-import { login } from "./authService.jsx";
+import { getValidToken } from "./authService.jsx";
 
 const USUARIOS_URL = "/auth/admin/realms/master/users";
 
-// Crea un nuevo usuario en Keycloak.
-// Recibe el formulario del usuario a crear y las credenciales del admin
-// (username, password) para obtener un token fresco antes de la petición.
-export async function crearUsuario(formulario, adminUsername, adminPassword) {
-  // Paso 1: autenticar con las credenciales del admin para obtener el token
-  await login(adminUsername, adminPassword);
-
-  // Paso 2: leer el token recién guardado
-  const token = localStorage.getItem("token");
+// Crea un nuevo usuario en Keycloak usando el token actual.
+export async function crearUsuario(formulario) {
+  // Obtiene un token válido, refrescándolo automáticamente si es necesario
+  const token = await getValidToken();
 
   const body = {
     username: formulario.usuario,
@@ -27,8 +22,6 @@ export async function crearUsuario(formulario, adminUsername, adminPassword) {
     ],
   };
 
-  console.log(body);
-  // Paso 3: crear el usuario con el token obtenido
   const request = await fetch(USUARIOS_URL, {
     method: "POST",
     headers: {
@@ -38,5 +31,10 @@ export async function crearUsuario(formulario, adminUsername, adminPassword) {
     body: JSON.stringify(body),
   });
 
-  if (!request.ok) throw new Error("Error al crear el usuario");
+  if (!request.ok) {
+    if (request.status === 401) {
+      throw new Error("Sesión expirada");
+    }
+    throw new Error("Error al crear el usuario");
+  }
 }

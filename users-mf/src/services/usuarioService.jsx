@@ -1,15 +1,24 @@
+import { getValidToken } from "./authService.jsx";
+
 const USUARIOS_URL = "/auth/admin/realms/master/users";
 
-// Obtiene la lista de usuarios desde Keycloak
+// Obtiene la lista de usuarios desde Keycloak usando el token actual.
 export async function obtenerUsuarios() {
-  const token = localStorage.getItem("token");
+  // Obtiene un token válido, refrescándolo automáticamente si es necesario
+  const token = await getValidToken();
 
   const request = await fetch(`${USUARIOS_URL}?first=0&max=20`, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  if (!request.ok) throw new Error("Error al obtener los usuarios");
+  if (!request.ok) {
+    // Si el token expiró, lanzar error específico
+    if (request.status === 401) {
+      throw new Error("Sesión expirada");
+    }
+    throw new Error("Error al obtener los usuarios");
+  }
 
   const data = await request.json();
 
