@@ -1,61 +1,32 @@
-# DOCUMENTACION TECNICA
+# Prueba Técnica ITM — Microfrontends
 
-1. Guardamos una variable "Access_token"
+Monorepo de microfrontends con React 19 + Vite 8, autenticados contra Keycloak.
 
-2. Autenticamos a la URL ("http://localhost:8080/realms/master/protocol/openid-connect/token")
+## Stack
 
-3. Ingresamos usuario:admin y contraseña:admin
+**React 19** · **Vite 8** · **React Router 7** · **Keycloak (REST)** · **npm workspaces**
 
-```bash
-export ACCESS_TOKEN=$(curl -d "client_id=admin-cli" -d "username=admin" -d "password=admin" -d "grant_type=password" "http://localhost:8080/realms/master/protocol/openid-connect/token" | jq -r .access_token)
-```
-- Este es un paso informativo para verificar que el jwt haya sido asignada la variable.
-```bash
-echo $ACCESS_TOKEN 
-```
-- <b>-H:</b> Es un encabezado
-```bash
-curl -s \ 
--H "Authorization: Bearer ${ACCESS_TOKEN}" \
-"http://localhost:8080/admin/realms/master/users?first=0&max=20" \
-| jq 'type'
-```
-- Visualizar la lista de usuarios
+## Quick Start
 
 ```bash
-curl -s \
--H "Authorization: Bearer $ACCESS_TOKEN" \
-"http://localhost:8080/admin/realms/master/users?first=0&max=20" \
-| jq -r '
-.[] |
-[
-.id,
-.username,
-(.firstName // "-"),
-(.lastName // "-"),
-(.email // "-"),
-(if .enabled then "ACTIVE" else "DISABLED" end)
-] | @tsv
-'
-```
-- Creación de usuario
+# Comando para instalar librerias
+npm install 
 
-```bash
-curl -X POST "http://localhost:8080/admin/realms/master/users" \
--H "Content-Type: application/json" \
--H "Authorization: Bearer $ACCESS_TOKEN" \
--d '{
-"username": "newuser",
-"enabled": true,
-"firstName": "Areli",
-"lastName": "Carpio",
-"email": "arelicarpio@example.com",
-"credentials": [
-{
-"type": "password",
-"value": "initial_password",
-"temporary": false
-}
-]
-}'
+# Comando para compilar nuestras librerias de componentes
+npm run build -w packages/components-lib
+
+# 
+npm run dev -w packages/users-mf
 ```
+
+> Requiere **Keycloak** en `http://localhost:8080`. Ver [`doc/users-mf.md`](doc/users-mf.md) para cómo levartarlo con Docker.
+
+## Documentación
+
+| Documento | Descripción |
+|---|---|
+| [`doc/users-mf.md`](doc/users-mf.md) | Cómo levantar Keycloak con Docker, iniciar el microfrontend y API curl |
+| [`doc/components-lib.md`](doc/components-lib.md) | Documentación y uso de los componentes compartidos |
+| [`doc/architecture.md`](doc/architecture.md) | Arquitectura del proyecto |
+| [`doc/auth-flow.md`](doc/auth-flow.md) | Flujo de autenticación y refresh token |
+| [`doc/microfrontends-strategy.md`](doc/microfrontends-strategy.md) | Estrategia de microfrontends |

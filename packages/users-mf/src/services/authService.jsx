@@ -87,8 +87,7 @@ export async function getValidToken() {
   if (isTokenExpiringSoon()) {
     try {
       return await refreshToken();
-    } catch (error) {
-      // Si falla el refresh, el usuario debe volver a hacer login
+    } catch {
       throw new Error("Sesión expirada");
     }
   }

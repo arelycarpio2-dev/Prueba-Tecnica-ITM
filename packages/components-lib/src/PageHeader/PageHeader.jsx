@@ -1,6 +1,5 @@
 import "./PageHeader.css";
 
-// Encabezado reutilizable con título y acción opcional (ej: cerrar sesión)
 function PageHeader({ title, actionLabel, onAction }) {
   return (
     <div className="page-header">

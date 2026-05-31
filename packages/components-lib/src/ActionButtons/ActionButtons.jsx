@@ -1,10 +1,9 @@
 import { FaPen, FaTrash } from "react-icons/fa6";
 import "./ActionButtons.css";
 
-// Botones de acción reutilizables para tablas
 function ActionButtons({ onEdit, onDelete, editLabel = "Editar", deleteLabel = "Eliminar" }) {
   return (
-    <div className="action-buttons">
+    <div className="action-buttons LIB-ARELIS">
       {onEdit && (
         <button
           className="btn-action btn-edit"

@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import ConfigRoutes from "../../routes/ConfigRoutes";
-import PageHeader from "../../components/common/PageHeader";
-import DataTable from "../../components/common/DataTable";
-import LoadingState from "../../components/common/LoadingState";
-import ActionButtons from "../../components/common/ActionButtons";
+import { PageHeader, DataTable, LoadingState, ActionButtons } from "@itm/components-lib";
+import "@itm/components-lib/style.css";
 import UserFormModal from "./components/UserFormModal";
 import { obtenerUsuarios } from "../../services/usuarioService.jsx";
 import { crearUsuario } from "../../services/crearUsuarioService.jsx";
@@ -40,11 +38,6 @@ function UsersPage() {
   const [usuario, setUsuario] = useState(EMPTY_USER);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState(null);
-
-  // Al montar el componente, carga la lista de usuarios
-  useEffect(() => {
-    cargarUsuarios();
-  }, []);
 
   // Helper para manejar sesión expirada
   const manejarSesionExpirada = () => {
@@ -158,6 +151,28 @@ function UsersPage() {
       onDelete={() => handleEliminarUsuario(usuarioFila.id)}
     />
   );
+
+  // Al montar el componente, carga la lista de usuarios
+  useEffect(() => {
+    const fetchData = async () => {
+      setCargando(true);
+      setErrorLista("");
+      try {
+        const lista = await obtenerUsuarios();
+        setUsuarios(lista);
+      } catch (error) {
+        console.error(error);
+        if (error.message === "Sesión expirada") {
+          manejarSesionExpirada();
+          return;
+        }
+        setErrorLista("No se pudo cargar la lista de usuarios");
+      } finally {
+        setCargando(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="users-page">
