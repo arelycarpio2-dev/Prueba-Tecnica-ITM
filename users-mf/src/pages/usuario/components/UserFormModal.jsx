@@ -1,7 +1,7 @@
-import "../home.css";
+import "./UserFormModal.css";
 
-// Modal compartido para crear y editar usuarios.
-function UsuarioFormModal({ formulario, editando, onChange, onGuardar, onCerrar }) {
+// Modal para crear y editar usuarios
+function UserFormModal({ usuario, editando, onChange, onGuardar, onCerrar }) {
   return (
     <div className="modal-overlay">
       <div className="modal">
@@ -13,8 +13,9 @@ function UsuarioFormModal({ formulario, editando, onChange, onGuardar, onCerrar 
             type="text"
             name="usuario"
             placeholder="Usuario"
-            value={formulario.usuario}
+            value={usuario.usuario}
             onChange={onChange}
+            disabled={editando} // No se puede cambiar el username al editar
           />
 
           <label>Nombre</label>
@@ -22,7 +23,7 @@ function UsuarioFormModal({ formulario, editando, onChange, onGuardar, onCerrar 
             type="text"
             name="nombre"
             placeholder="Nombre"
-            value={formulario.nombre}
+            value={usuario.nombre}
             onChange={onChange}
           />
 
@@ -31,7 +32,7 @@ function UsuarioFormModal({ formulario, editando, onChange, onGuardar, onCerrar 
             type="text"
             name="apellido"
             placeholder="Apellido"
-            value={formulario.apellido}
+            value={usuario.apellido}
             onChange={onChange}
           />
 
@@ -40,11 +41,11 @@ function UsuarioFormModal({ formulario, editando, onChange, onGuardar, onCerrar 
             type="email"
             name="correo"
             placeholder="correo@ejemplo.com"
-            value={formulario.correo}
+            value={usuario.correo}
             onChange={onChange}
           />
 
-          {/* Campos solo visibles al crear */}
+          {/* Campo de contraseña solo visible al crear */}
           {!editando && (
             <>
               <label>Contraseña</label>
@@ -52,18 +53,14 @@ function UsuarioFormModal({ formulario, editando, onChange, onGuardar, onCerrar 
                 type="password"
                 name="contrasena"
                 placeholder="Contraseña"
-                value={formulario.contrasena}
+                value={usuario.contrasena}
                 onChange={onChange}
               />
             </>
           )}
 
           <label>Estado</label>
-          <select
-            name="estado"
-            value={formulario.estado}
-            onChange={onChange}
-          >
+          <select name="estado" value={usuario.estado} onChange={onChange}>
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
           </select>
@@ -82,4 +79,4 @@ function UsuarioFormModal({ formulario, editando, onChange, onGuardar, onCerrar 
   );
 }
 
-export default UsuarioFormModal;
+export default UserFormModal;

@@ -3,20 +3,20 @@ import { getValidToken } from "./authService.jsx";
 const USUARIOS_URL = "/auth/admin/realms/master/users";
 
 // Crea un nuevo usuario en Keycloak usando el token actual.
-export async function crearUsuario(formulario) {
+export async function crearUsuario(usuario) {
   // Obtiene un token válido, refrescándolo automáticamente si es necesario
   const token = await getValidToken();
 
   const body = {
-    username: formulario.usuario,
-    firstName: formulario.nombre,
-    lastName: formulario.apellido,
-    email: formulario.correo,
-    enabled: formulario.estado === "Activo",
+    username: usuario.usuario,
+    firstName: usuario.nombre,
+    lastName: usuario.apellido,
+    email: usuario.correo,
+    enabled: usuario.estado === "Activo",
     credentials: [
       {
         type: "password",
-        value: formulario.contrasena,
+        value: usuario.contrasena,
         temporary: false,
       },
     ],

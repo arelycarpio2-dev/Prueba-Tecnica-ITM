@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login.jsx";
-import Home from "../pages/usuario/Home.jsx";
+import UsersPage from "../pages/usuario/UsersPage.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import PublicRoute from "./PublicRoute.jsx";
 import ConfigRoutes from "./ConfigRoutes.jsx";
@@ -15,7 +15,7 @@ function AppRoutes() {
 
       {/* Rutas privadas: solo accesibles con sesión activa */}
       <Route element={<ProtectedRoute />}>
-        <Route path={ConfigRoutes.HOME} element={<Home />} />
+        <Route path={ConfigRoutes.HOME} element={<UsersPage />} />
       </Route>
     </Routes>
   );

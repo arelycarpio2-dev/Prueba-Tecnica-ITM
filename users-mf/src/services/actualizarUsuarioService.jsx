@@ -3,18 +3,18 @@ import { getValidToken } from "./authService.jsx";
 const USUARIOS_URL = "/auth/admin/realms/master/users";
 
 // Actualiza un usuario existente en Keycloak usando el token actual.
-export async function actualizarUsuario(formulario) {
+export async function actualizarUsuario(usuario) {
   // Obtiene un token válido, refrescándolo automáticamente si es necesario
   const token = await getValidToken();
 
   const body = {
-    firstName: formulario.nombre,
-    lastName: formulario.apellido,
-    email: formulario.correo,
-    enabled: formulario.estado === "Activo",
+    firstName: usuario.nombre,
+    lastName: usuario.apellido,
+    email: usuario.correo,
+    enabled: usuario.estado === "Activo",
   };
 
-  const request = await fetch(`${USUARIOS_URL}/${formulario.id}`, {
+  const request = await fetch(`${USUARIOS_URL}/${usuario.id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
