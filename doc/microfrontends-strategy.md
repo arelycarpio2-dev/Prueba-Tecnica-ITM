@@ -17,7 +17,7 @@ Crear un proyecto separado que albergue los **componentes compartidos** y que ca
 
 ## Opciones Arquitectónicas
 
-### Opción 1: Monorepo con npm Workspaces (Recomendada ✅)
+### Opción 1: Monorepo 
 
 Crear un monorepo con dos paquetes: una librería de componentes y los microfrontends.
 
@@ -57,32 +57,6 @@ Prueba-Tecnica-ITM-main/
   "workspaces": ["packages/*"]
 }
 ```
-
----
-
-### Opción 2: Paquete npm Privado
-
-Publicar los componentes compartidos como un paquete npm privado (o usar GitHub Packages).
-
-```
-Prueba-Tecnica-ITM-main/
-├── components-lib/             # Repositorio separado
-│   ├── src/
-│   ├── package.json            # name: "@itm/components-lib"
-│   └── vite.config.js
-├── users-mf/                   # Otro repositorio
-│   └── package.json            # dependency: "@itm/components-lib": "^1.0.0"
-```
-
-**Ventajas:**
-- Separación total entre librería y consumidores
-- Versionado semántico independiente
-- Ideal para equipos grandes
-
-**Desventajas:**
-- Requiere publicar y versionar cada cambio
-- Flujo de desarrollo más lento (build → publish → install)
-- Más overhead para cambios pequeños.
 
 ---
 
